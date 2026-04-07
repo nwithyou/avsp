@@ -1,2 +1,7 @@
 PyQt5>=5.15.0
-pywin32>=305
+
+# pywin32는 Windows 전용입니다. Windows에서만 설치하세요:
+#   pip install pywin32>=305
+#
+# 키움 Open API+는 Windows COM 컴포넌트이므로
+# Linux/macOS에서는 실제 API 호출이 불가능합니다.

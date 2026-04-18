@@ -81,5 +81,27 @@ class KiwoomREST:
         if data.get("return_code") not in (0, "0", None):
             raise RuntimeError(f"API 오류: {data.get('return_msg', '알 수 없는 오류')}")
 
-        # 응답 원본을 그대로 반환 (필드명 확인 후 파싱 예정)
-        return data
+        def to_int(v):
+            try:
+                return int(str(v).replace(",", ""))
+            except (ValueError, TypeError):
+                return 0
+
+        def to_float(v):
+            try:
+                return float(str(v).replace(",", ""))
+            except (ValueError, TypeError):
+                return 0.0
+
+        return {
+            "종목코드": stock_code,
+            "종목명": data.get("stk_nm", ""),
+            "현재가": to_int(data.get("cur_prc")),
+            "전일종가": to_int(data.get("pred_close_pric")),
+            "등락률": to_float(data.get("flu_rt")),
+            "시가": to_int(data.get("open_pric")),
+            "고가": to_int(data.get("high_pric")),
+            "저가": to_int(data.get("low_pric")),
+            "거래량": to_int(data.get("trde_qty")),
+            "부호": data.get("smbol", ""),  # +: 상승, -: 하락
+        }

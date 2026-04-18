@@ -14,8 +14,21 @@ from kiwoom_rest import KiwoomREST
 import config
 
 
+def print_price_info(info: dict) -> None:
+    sign = "▲" if info["부호"] == "+" else "▼" if info["부호"] == "-" else "-"
+    diff = info["현재가"] - info["전일종가"]
+    rate = info["등락률"]
+    rate_sign = "+" if rate >= 0 else ""
+    print(
+        f"  [{info['종목코드']}] {info['종목명']}\n"
+        f"    현재가  : {info['현재가']:>10,} 원\n"
+        f"    전일대비: {sign} {abs(diff):>8,} 원  ({rate_sign}{rate:.2f}%)\n"
+        f"    시 / 고 / 저: {info['시가']:,} / {info['고가']:,} / {info['저가']:,}\n"
+        f"    거래량  : {info['거래량']:>10,} 주\n"
+    )
+
+
 def main() -> None:
-    import json
     print("=" * 50)
     print("  키움 REST API - 현재 시세 조회")
     print("=" * 50)
@@ -26,8 +39,7 @@ def main() -> None:
         print(f"[조회 중] {name} ({code})")
         try:
             info = api.get_stock_price(code)
-            # 응답 필드 확인을 위해 원본 출력
-            print(json.dumps(info, indent=2, ensure_ascii=False))
+            print_price_info(info)
         except Exception as exc:
             print(f"  오류: {exc}\n")
 

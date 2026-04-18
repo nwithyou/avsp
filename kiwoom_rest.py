@@ -48,13 +48,12 @@ class KiwoomREST:
             self._token_expires_at = time.time() + 86400 - 60
         print("[인증] 액세스 토큰 발급 완료")
 
-    def _headers(self) -> dict:
+    def _headers(self, api_id: str) -> dict:
         self._ensure_token()
         return {
             "Content-Type": "application/json;charset=UTF-8",
             "authorization": f"Bearer {self._access_token}",
-            "appkey": config.APP_KEY,
-            "secretkey": config.APP_SECRET,
+            "api-id": api_id,
         }
 
     # ------------------------------------------------------------------
@@ -63,43 +62,24 @@ class KiwoomREST:
 
     def get_stock_price(self, stock_code: str) -> dict:
         """
-        주식 현재가 조회 (단건)
+        주식 현재가 조회 (ka10007 - 시세표성정보요청)
 
         Args:
             stock_code: 종목코드 (예: "005930")
 
         Returns:
-            dict: 현재가, 전일대비, 등락률, 거래량 등
+            dict: 서버 응답 원본 (응답 필드 확인용)
         """
-        url = f"{config.BASE_URL}/uapi/domestic-stock/v1/quotations/inquire-price"
-        params = {
-            "fid_cond_mrkt_div_code": "J",   # J: 주식
-            "fid_input_iscd": stock_code,
+        url = f"{config.BASE_URL}/api/dostk/mrkcond"
+        body = {
+            "stk_cd": f"KRX:{stock_code}",
         }
-        resp = self._session.get(url, headers=self._headers(), params=params, timeout=10)
+        resp = self._session.post(url, headers=self._headers("ka10007"), json=body, timeout=10)
         resp.raise_for_status()
         data = resp.json()
 
-        if data.get("rt_cd") != "0":
-            raise RuntimeError(f"API 오류: {data.get('msg1', '알 수 없는 오류')}")
+        if data.get("return_code") not in (0, "0", None):
+            raise RuntimeError(f"API 오류: {data.get('return_msg', '알 수 없는 오류')}")
 
-        output = data["output"]
-        price = int(output.get("stck_prpr", 0))        # 현재가
-        diff = int(output.get("prdy_vrss", 0))         # 전일대비
-        rate = float(output.get("prdy_ctrt", 0))       # 등락률
-        volume = int(output.get("acml_vol", 0))        # 누적 거래량
-        open_ = int(output.get("stck_oprc", 0))        # 시가
-        high = int(output.get("stck_hgpr", 0))         # 고가
-        low = int(output.get("stck_lwpr", 0))          # 저가
-
-        return {
-            "종목코드": stock_code,
-            "종목명": output.get("hts_kor_isnm", ""),
-            "현재가": price,
-            "전일대비": diff,
-            "등락률": rate,
-            "거래량": volume,
-            "시가": open_,
-            "고가": high,
-            "저가": low,
-        }
+        # 응답 원본을 그대로 반환 (필드명 확인 후 파싱 예정)
+        return data

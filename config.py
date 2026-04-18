@@ -9,7 +9,7 @@ APP_KEY = "여기에_앱키_입력"
 APP_SECRET = "여기에_앱시크릿_입력"
 
 # API 서버 주소
-BASE_URL = "https://openapi.kiwoom.com:9443"
+BASE_URL = "https://api.kiwoom.com"
 
 # 조회할 종목
 STOCKS = {

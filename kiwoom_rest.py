@@ -6,6 +6,7 @@
 """
 
 import time
+from datetime import datetime
 import requests
 
 import config
@@ -39,8 +40,12 @@ class KiwoomREST:
         data = resp.json()
 
         self._access_token = data["token"]
-        # 만료 시간 앞당겨 갱신 (여유 60초)
-        self._token_expires_at = time.time() + int(data.get("expires_in", 86400)) - 60
+        # expires_dt 형식: "20241107083713" (YYYYMMDDHHmmss)
+        expires_dt = data.get("expires_dt", "")
+        if expires_dt:
+            self._token_expires_at = datetime.strptime(expires_dt, "%Y%m%d%H%M%S").timestamp() - 60
+        else:
+            self._token_expires_at = time.time() + 86400 - 60
         print("[인증] 액세스 토큰 발급 완료")
 
     def _headers(self) -> dict:
